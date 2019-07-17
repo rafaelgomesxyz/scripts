@@ -16,6 +16,12 @@ function update() {
     var numRows = sheet.getMaxRows() - 2;
     var values = numRows > 0 ? sheet.getRange(2, 1, numRows, sheet.getMaxColumns()).getValues() : [];
     var oldNumValues = values.length;
+
+    var hasChanged = false;
+    var changesBackup = new Array(oldNumValues);
+    for (var j = 0; j < oldNumValues; j++) {
+      changesBackup[j] = '-';
+    }
     
     var ranking = rankings[i];
     var response = UrlFetchApp.fetch(ranking);
@@ -32,10 +38,16 @@ function update() {
       var numValues = values.length;
       for (var k = 0; k < numValues && values[k][0] !== name; k++);
       if (k < numValues && values[k][0] === name) {
+        changesBackup[k] = values[k][2];
+        
         var currentPlace = values[k][1] === '-' ? 101 : parseInt(values[k][1]);
         if (currentPlace === place) {
           values[k][2] = '-';
         } else {
+          if (!hasChanged) {
+            hasChanged = true;
+          }
+
           var change = currentPlace - place;
           values[k][1] = place + '';
           if (change > 0) {
@@ -47,6 +59,11 @@ function update() {
           values[k][3] = place + ', ' + values[k][3];
         }
       } else {
+        if (!hasChanged) {
+          hasChanged = true;
+        }
+        changesBackup.push('*');
+
         values.push([name, place + '', '*', place + '']);
       }
       
@@ -59,15 +76,27 @@ function update() {
       var name = values[j][0];
       for (var k = 0; k < numNames && names[k] !== name; k++);
       if (k >= numNames) {
+        changesBackup[j] = values[j][2];
+
         var currentPlace = values[j][1] === '-' ? 101 : parseInt(values[j][1]);
         if (currentPlace === 101) {
           values[j][2] = '-';
         } else {
+          if (!hasChanged) {
+            hasChanged = true;
+          }
+          
           var change = 101 - currentPlace;
           values[j][1] = '-';   
           values[j][2] = '-' + change;
           values[j][3] = '-, ' + values[j][3];
         }
+      }
+    }
+    
+    if (!hasChanged) {
+      for (var j = 0; j < newNumValues; j++) {
+        values[j][2] = changesBackup[j];
       }
     }
     
