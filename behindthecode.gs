@@ -8,6 +8,8 @@ var rankings = [
 var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
 
 function update() {
+  var currentDate = Utilities.formatDate(new Date(), 'GMT-3', 'dd/MM HH:mm:ss');
+
   var numRankings = rankings.length;
   for (var i = 0; i < numRankings; i++) {
     var names = [];
@@ -94,7 +96,9 @@ function update() {
       }
     }
     
-    if (!hasChanged) {
+    if (hasChanged) {
+      sheet.getRange(1, 3).setValue('MUDANÇA DESDE A ÚLTIMA ATUALIZAÇÃO (' + currentDate + ')');
+    } else {
       for (var j = 0; j < newNumValues; j++) {
         values[j][2] = changesBackup[j];
       }
