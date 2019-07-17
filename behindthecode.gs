@@ -96,6 +96,7 @@ function update() {
       }
     }
     
+    sheet.getRange(1, 1).setValue('ÚLTIMA CHECAGEM: ' + currentDate + '\n\n\nNOME');
     if (hasChanged) {
       sheet.getRange(1, 3).setValue('MUDANÇA DESDE A ÚLTIMA ATUALIZAÇÃO (' + currentDate + ')');
     } else {
