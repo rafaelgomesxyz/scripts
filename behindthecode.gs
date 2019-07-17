@@ -96,14 +96,16 @@ function update() {
       }
     }
     
-    sheet.getRange(1, 1).setValue('ÚLTIMA CHECAGEM: ' + currentDate + '\n\n\nNOME');
+    var parts = sheet.getRange(1, 1).getValue().split(/\n/);
+    parts[0] = 'ÚLTIMA CHECAGEM:        ' + currentDate;
     if (hasChanged) {
-      sheet.getRange(1, 3).setValue('MUDANÇA DESDE A ÚLTIMA ATUALIZAÇÃO (' + currentDate + ')');
+      parts[1] = 'ÚLTIMA ATUALIZAÇÃO:   ' + currentDate;
     } else {
       for (var j = 0; j < newNumValues; j++) {
         values[j][2] = changesBackup[j];
       }
     }
+    sheet.getRange(1, 1).setValue(parts.join('\n'));
     
     var diff = newNumValues - oldNumValues;
     if (diff > 0) {
