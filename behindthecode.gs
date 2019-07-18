@@ -1,3 +1,5 @@
+// This is a Google Apps Script (https://developers.google.com/apps-script/) that is integrated with a Google Sheet.
+
 var rankings = [
   'https://maratona.dev/ranking/',
   'https://maratona.dev/desafios/crie-um-sommelier-virtual-usando-inteligencia-artificial/',
