@@ -8,6 +8,8 @@ var rankings = [
 var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
 
 function update() {
+  var hasDesafiosChanged = false;
+
   var currentDate = Utilities.formatDate(new Date(), 'GMT-3', 'dd/MM HH:mm:ss');
 
   var numRankings = rankings.length;
@@ -15,8 +17,9 @@ function update() {
     var names = [];
 
     var sheet = sheets[i];
-    var numRows = sheet.getMaxRows() - 2;
-    var values = numRows > 0 ? sheet.getRange(2, 1, numRows, sheet.getMaxColumns()).getValues() : [];
+    var numFrozenRows = sheet.getFrozenRows();
+    var numRows = sheet.getMaxRows() - numFrozenRows - 1;
+    var values = numRows > 0 ? sheet.getRange(numFrozenRows + 1, 1, numRows, 5).getValues() : [];
     var oldNumValues = values.length;
 
     var hasChanged = false;
@@ -40,25 +43,25 @@ function update() {
       var numValues = values.length;
       for (var k = 0; k < numValues && values[k][0] !== name; k++);
       if (k < numValues && values[k][0] === name) {
-        changesBackup[k] = values[k][2];
+        changesBackup[k] = values[k][3];
         
-        var currentPlace = values[k][1] === '-' ? 101 : parseInt(values[k][1]);
+        var currentPlace = values[k][2] === '-' ? 101 : parseInt(values[k][2]);
         if (currentPlace === place) {
-          values[k][2] = '-';
+          values[k][3] = '-';
         } else {
           if (!hasChanged) {
             hasChanged = true;
           }
 
           var change = currentPlace - place;
-          values[k][1] = place + '';
+          values[k][2] = place + '';
           if (change > 0) {
-            values[k][2] = '+' + change;
+            values[k][3] = '+' + change;
           } else {
             change *= -1;
-            values[k][2] = '-' + change;
+            values[k][3] = '-' + change;
           }
-          values[k][3] = place + ', ' + values[k][3];
+          values[k][4] = place + ', ' + values[k][4];
         }
       } else {
         if (!hasChanged) {
@@ -66,7 +69,7 @@ function update() {
         }
         changesBackup.push('*');
 
-        values.push([name, place + '', '*', place + '']);
+        values.push([name, '', place + '', '*', place + '']);
       }
       
       names.push(name);
@@ -78,41 +81,98 @@ function update() {
       var name = values[j][0];
       for (var k = 0; k < numNames && names[k] !== name; k++);
       if (k >= numNames) {
-        changesBackup[j] = values[j][2];
+        changesBackup[j] = values[j][3];
 
-        var currentPlace = values[j][1] === '-' ? 101 : parseInt(values[j][1]);
+        var currentPlace = values[j][2] === '-' ? 101 : parseInt(values[j][2]);
         if (currentPlace === 101) {
-          values[j][2] = '-';
+          values[j][3] = '-';
         } else {
           if (!hasChanged) {
             hasChanged = true;
           }
           
           var change = 101 - currentPlace;
-          values[j][1] = '-';   
-          values[j][2] = '-' + change;
-          values[j][3] = '-, ' + values[j][3];
+          values[j][2] = '-';   
+          values[j][3] = '-' + change;
+          values[j][4] = '-, ' + values[j][4];
         }
       }
     }
     
-    var parts = sheet.getRange(1, 1).getValue().split(/\n/);
-    parts[0] = 'ÚLTIMA CHECAGEM:        ' + currentDate;
+    sheet.getRange(1, 2).setValue(currentDate);
     if (hasChanged) {
-      parts[1] = 'ÚLTIMA ATUALIZAÇÃO:   ' + currentDate;
+      sheet.getRange(2, 2).setValue(currentDate);
+      
+      if (!hasDesafiosChanged && i > 0) {
+        hasDesafiosChanged = true;
+      }
     } else {
       for (var j = 0; j < newNumValues; j++) {
-        values[j][2] = changesBackup[j];
+        values[j][3] = changesBackup[j];
       }
     }
-    sheet.getRange(1, 1).setValue(parts.join('\n'));
     
     var diff = newNumValues - oldNumValues;
     if (diff > 0) {
-      sheet.insertRows(2, diff);
+      sheet.insertRows(numFrozenRows + 1, diff);
+      sheet.getRange(numFrozenRows + 1, 1, diff, 2).mergeAcross();
+      for (var j = 0; j < diff; j++) {
+        for (var k = 1; k <= 8; k++) {
+          var notation = sheet.getRange(numFrozenRows + j + 1, 1).getA1Notation();
+          sheet.getRange(numFrozenRows + j + 1, k + 5).setFormula('=IFNA(FILTER(\'' + k + '\'!C:C, \'' + k + '\'!A:A=' + notation + '), "-")');
+        }
+      }
     }
-    sheet.getRange(2, 1, sheet.getMaxRows() - 2, sheet.getMaxColumns()).setValues(values);
+    sheet.getRange(numFrozenRows + 1, 1, sheet.getMaxRows() - numFrozenRows - 1, 5).setValues(values);
     
-    sheet.sort(2, true);
-  }  
+    sheet.sort(3, true);
+  }
+  
+  if (hasDesafiosChanged) {
+    SpreadsheetApp.flush();
+    getMissing();
+  }
+}
+
+function getMissing() {
+  var sheet_geral = sheets[0];
+  var numFrozenRows_geral = sheet_geral.getFrozenRows();
+  var numRows_geral = sheet_geral.getMaxRows() - numFrozenRows_geral - 1;
+  var values_geral = numRows_geral > 0 ? sheet_geral.getRange(numFrozenRows_geral + 1, 1, numRows_geral, 5).getValues() : [];
+  var oldNumValues = values_geral.length;
+
+  var numRankings = rankings.length;
+  for (var i = 1; i < numRankings; i++) {
+    var sheet = sheets[i];
+    var numFrozenRows = sheet.getFrozenRows();
+    var numRows = sheet.getMaxRows() - numFrozenRows - 1;
+    var values = numRows > 0 ? sheet.getRange(numFrozenRows + 1, 1, numRows, 5).getValues() : [];
+    var numValues = values.length;
+
+    for (var j = 0; j < numValues; j++) {
+      var name = values[j][0];
+
+      var numValues_geral = values_geral.length;
+      for (var k = 0; k < numValues_geral && values_geral[k][0] !== name; k++);
+      if (k >= numValues_geral) {
+        values_geral.push([name, '', '-', '-', '-']);
+      }
+    }
+  }
+    
+  var newNumValues = values_geral.length;
+  var diff = newNumValues - oldNumValues;
+  if (diff > 0) {
+    sheet_geral.insertRows(numFrozenRows_geral + 1, diff);
+    sheet_geral.getRange(numFrozenRows_geral + 1, 1, diff, 2).mergeAcross();
+    for (var i = 0; i < diff; i++) {
+      for (var j = 1; j <= 8; j++) {
+        var notation = sheet_geral.getRange(numFrozenRows_geral + i + 1, 1).getA1Notation();
+        sheet_geral.getRange(numFrozenRows_geral + i + 1, j + 5).setFormula('=IFNA(FILTER(\'' + j + '\'!C:C, \'' + j + '\'!A:A=' + notation + '), "-")');
+      }
+    }
+  }
+  sheet_geral.getRange(numFrozenRows_geral + 1, 1, sheet_geral.getMaxRows() - numFrozenRows_geral - 1, 5).setValues(values_geral);
+  
+  sheet_geral.sort(3, true);
 }
