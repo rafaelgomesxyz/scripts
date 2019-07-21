@@ -4,3 +4,5 @@
 4. Crie um novo arquivo na pasta `public` chamado `main.992fb815e99a84b74b57.js`
 5. Copie o conteúdo desse arquivo para o arquivo criado: https://raw.githubusercontent.com/gsrafael01/scripts/master/btc/main.992fb815e99a84b74b57.js
 6. Aperte o play de novo, e pronto :)
+
+E só uma coisa: toda vez que você analisar um arquivo, tem que atualizar a página pra enviar outro, porque a tabela não atualiza.
