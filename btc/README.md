@@ -7,4 +7,6 @@
 
 Os números que aparecem na frente das entidades são os índices de confiança.
 
+Só funciona com arquivos PDF.
+
 E só uma coisa: toda vez que você analisar um arquivo, tem que atualizar a página pra enviar outro, porque a tabela não atualiza.
