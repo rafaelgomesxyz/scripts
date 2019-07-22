@@ -5,7 +5,9 @@ var rankings = [
   'https://maratona.dev/desafios/crie-um-sommelier-virtual-usando-inteligencia-artificial/',
   'https://maratona.dev/desafios/desafio-2-fiap-desenvolva-um-tutor-para-ensinar-matematica-para-criancas/',
   'https://maratona.dev/desafios/desafio-3-unija-da-imagem-ao-texto-use-a-inteligencia-artificial-para-aprender-ingles/',
-  'https://maratona.dev/desafios/desafio-4-boticario-inteligencia-artificial-para-recomendacao-do-melhor-presente/'
+  'https://maratona.dev/desafios/desafio-4-boticario-inteligencia-artificial-para-recomendacao-do-melhor-presente/',
+  'https://maratona.dev/desafios/desafio-5-brf-iot-e-visual-recognition-inteligente-para-expositores/',
+  'https://maratona.dev/desafios/desafio-6-ingram-micro-novas-rotas-criando-um-mediador-judicial-cognitivo/'  
 ];
 var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
 
@@ -35,7 +37,7 @@ function update() {
     var text = response.getContentText();
 
     var items = text.match(/<li>.*?<span\sclass="ranking-name">.*?<\/span>.*?<span\sclass="ranking-place">.*?<\/span>.*?<\/li>/g);
-    var numItems = items.length;
+    var numItems = items ? items.length : 0;
     for (var j = 0; j < numItems; j++) {
       var item = items[j];
       var matches = item.match(/<span\sclass="ranking-name">(.*?)<\/span>.*?<span\sclass="ranking-place">(.*?)<\/span>/);
@@ -118,14 +120,18 @@ function update() {
     if (diff > 0) {
       sheet.insertRows(numFrozenRows + 1, diff);
       sheet.getRange(numFrozenRows + 1, 1, diff, 2).mergeAcross();
-      for (var j = 0; j < diff; j++) {
-        for (var k = 1; k <= 8; k++) {
-          var notation = sheet.getRange(numFrozenRows + j + 1, 1).getA1Notation();
-          sheet.getRange(numFrozenRows + j + 1, k + 5).setFormula('=IFNA(FILTER(\'' + k + '\'!C:C, \'' + k + '\'!A:A=' + notation + '), "-")');
+      if (i === 0) {
+        for (var j = 0; j < diff; j++) {
+          for (var k = 1; k <= 8; k++) {
+            var notation = sheet.getRange(numFrozenRows + j + 1, 1).getA1Notation();
+            sheet.getRange(numFrozenRows + j + 1, k + 5).setFormula('=IFNA(FILTER(\'' + k + '\'!C:C, \'' + k + '\'!A:A=' + notation + '), "-")');
+          }
         }
       }
     }
-    sheet.getRange(numFrozenRows + 1, 1, sheet.getMaxRows() - numFrozenRows - 1, 5).setValues(values);
+    if (newNumValues > 0) {
+      sheet.getRange(numFrozenRows + 1, 1, sheet.getMaxRows() - numFrozenRows - 1, 5).setValues(values);
+    }
     
     sheet.sort(3, true);
   }
