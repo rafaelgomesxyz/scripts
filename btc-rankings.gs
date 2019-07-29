@@ -7,7 +7,9 @@ var rankings = [
   'https://maratona.dev/desafios/desafio-3-unija-da-imagem-ao-texto-use-a-inteligencia-artificial-para-aprender-ingles/',
   'https://maratona.dev/desafios/desafio-4-boticario-inteligencia-artificial-para-recomendacao-do-melhor-presente/',
   'https://maratona.dev/desafios/desafio-5-brf-iot-e-visual-recognition-inteligente-para-expositores/',
-  'https://maratona.dev/desafios/desafio-6-ingram-micro-novas-rotas-criando-um-mediador-judicial-cognitivo/'  
+  'https://maratona.dev/desafios/desafio-6-ingram-micro-novas-rotas-criando-um-mediador-judicial-cognitivo/',
+  'https://maratona.dev/desafios/desafio-7-banco-original-inteligencia-artificial-para-investimentos/',
+  'https://maratona.dev/desafios/desafio-8-saint-paul-lit-blockchain-para-certificacao-digital-de-diplomas/'
 ];
 var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
 
@@ -38,6 +40,12 @@ function update() {
 
     var items = text.match(/<li>.*?<span\sclass="ranking-name">.*?<\/span>.*?<span\sclass="ranking-place">.*?<\/span>.*?<\/li>/g);
     var numItems = items ? items.length : 0;
+    
+    if (numItems === 0) {
+      sheet.getRange(1, 2).setValue(currentDate);
+      continue;
+    }
+
     for (var j = 0; j < numItems; j++) {
       var item = items[j];
       var matches = item.match(/<span\sclass="ranking-name">(.*?)<\/span>.*?<span\sclass="ranking-place">(.*?)<\/span>/);
