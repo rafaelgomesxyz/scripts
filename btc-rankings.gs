@@ -35,7 +35,15 @@ function update() {
     }
     
     var ranking = rankings[i];
-    var response = UrlFetchApp.fetch(ranking);
+
+    var response;
+    try {
+      response = UrlFetchApp.fetch(ranking);
+    } catch (err) {
+      sheet.getRange(1, 2).setValue(currentDate);
+      continue;
+    }
+
     var text = response.getContentText();
 
     var items = text.match(/<li>.*?<span\sclass="ranking-name">.*?<\/span>.*?<span\sclass="ranking-place">.*?<\/span>.*?<\/li>/g);
@@ -57,7 +65,7 @@ function update() {
       if (k < numValues && values[k][0] === name) {
         changesBackup[k] = values[k][3];
         
-        var currentPlace = values[k][2] === '-' ? 101 : parseInt(values[k][2]);
+        var currentPlace = values[k][2] === '< 100' ? 101 : parseInt(values[k][2]);
         if (currentPlace === place) {
           values[k][3] = '-';
         } else {
@@ -95,7 +103,7 @@ function update() {
       if (k >= numNames) {
         changesBackup[j] = values[j][3];
 
-        var currentPlace = values[j][2] === '-' ? 101 : parseInt(values[j][2]);
+        var currentPlace = values[j][2] === '< 100' ? 101 : parseInt(values[j][2]);
         if (currentPlace === 101) {
           values[j][3] = '-';
         } else {
@@ -104,9 +112,9 @@ function update() {
           }
           
           var change = 101 - currentPlace;
-          values[j][2] = '-';   
+          values[j][2] = '< 100';   
           values[j][3] = '-' + change;
-          values[j][4] = '-, ' + values[j][4];
+          values[j][4] = '< 100, ' + values[j][4];
         }
       }
     }
@@ -171,7 +179,7 @@ function getMissing() {
       var numValues_geral = values_geral.length;
       for (var k = 0; k < numValues_geral && values_geral[k][0] !== name; k++);
       if (k >= numValues_geral) {
-        values_geral.push([name, '', '-', '-', '-']);
+        values_geral.push([name, '', '< 100', '-', '< 100']);
       }
     }
   }
@@ -191,4 +199,26 @@ function getMissing() {
   sheet_geral.getRange(numFrozenRows_geral + 1, 1, sheet_geral.getMaxRows() - numFrozenRows_geral - 1, 5).setValues(values_geral);
   
   sheet_geral.sort(3, true);
+}
+
+function fixSheets() {
+  var numSheets = sheets.length;
+
+  for (var i = 0; i < numSheets; i++) {
+    var sheet = sheets[i];
+    var numFrozenRows = sheet.getFrozenRows();
+    var numRows = sheet.getMaxRows() - numFrozenRows - 1;
+    var values = numRows > 0 ? sheet.getRange(numFrozenRows + 1, 1, numRows, 5).getValues() : [];
+    var numValues = values.length;
+
+    if (numValues > 0) {
+      for (var j = 0; j < numValues; j++) {
+        if (values[j][2] === '-') {
+          values[j][2] = '< 100';
+        }
+        values[j][4] = values[j][4].replace(/-/g, '< 100');
+      }
+      sheet.getRange(numFrozenRows + 1, 1, sheet.getMaxRows() - numFrozenRows - 1, 5).setValues(values);
+    }
+  }
 }
