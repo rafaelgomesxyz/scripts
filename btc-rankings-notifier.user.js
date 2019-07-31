@@ -7,7 +7,6 @@
 // @match        https://app.slack.com/client/TKMUP9NGZ/*
 // @grant        GM.getValue
 // @grant        GM.setValue
-// @grant        GM.notification
 // @noframes
 // ==/UserScript==
 
@@ -26,10 +25,8 @@
         if (lastUpdate !== json[0]) {
             lastUpdate = json[0];
             GM.setValue(`lastUpdate`, lastUpdate);
-            GM.notification({
-                title: `RANKING GERAL ATUALIZADO!`,
-                onclick: () => window.open(`https://docs.google.com/spreadsheets/d/1iEpL8SkWPZMyPhDfWBVZKl0D4woXmV_splLwWEzniRk/edit?usp=sharing`, `_blank`)
-            });
+            Notification.requestPermission()
+                .then(() => new Notification(`RANKING GERAL ATUALIZADO!`));
         }
         timeout = window.setTimeout(start, 300000);
     }
