@@ -13,7 +13,7 @@
     let lastUpdate = await GM.getValue(`lastUpdate`, ``);
     let timeout = null;
 
-    start();
+    window.setTimeout(start, (60000 * (5 - ((new Date().getMinutes()) % 5))) + 10000);
 
     async function start() {
         const response = await fetch(`https://script.google.com/macros/s/AKfycbwCZ35h6VudS0wAixKBHYffFBm-458_cQoBJlTxUg/exec`);
