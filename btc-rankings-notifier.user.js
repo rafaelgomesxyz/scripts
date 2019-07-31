@@ -7,13 +7,17 @@
 // @match        https://app.slack.com/client/TKMUP9NGZ/*
 // @grant        GM.getValue
 // @grant        GM.setValue
+// @grant        GM.notification
+// @noframes
 // ==/UserScript==
 
 (async () => {
     let lastUpdate = await GM.getValue(`lastUpdate`, ``);
     let timeout = null;
 
-    window.setTimeout(start, (60000 * (5 - ((new Date().getMinutes()) % 5))) + 10000);
+    const currentDate = new Date();
+
+    window.setTimeout(start, ((60 * (5 - (currentDate.getMinutes() % 5))) - currentDate.getSeconds() + 10) * 1000);
 
     async function start() {
         const response = await fetch(`https://script.google.com/macros/s/AKfycbwCZ35h6VudS0wAixKBHYffFBm-458_cQoBJlTxUg/exec`);
@@ -22,8 +26,10 @@
         if (lastUpdate !== json[0]) {
             lastUpdate = json[0];
             GM.setValue(`lastUpdate`, lastUpdate);
-            Notification.requestPermission()
-                .then(() => new Notification(`RANKING GERAL ATUALIZADO!`));
+            GM.notification({
+                title: `RANKING GERAL ATUALIZADO!`,
+                onclick: () => window.open(`https://docs.google.com/spreadsheets/d/1iEpL8SkWPZMyPhDfWBVZKl0D4woXmV_splLwWEzniRk/edit?usp=sharing`, `_blank`)
+            });
         }
         timeout = window.setTimeout(start, 300000);
     }
